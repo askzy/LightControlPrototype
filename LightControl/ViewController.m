@@ -11,8 +11,6 @@
 #import "AppDelegate.h"
 #import "LocationManager.h"
 
-#import <AVFoundation/AVFoundation.h>
-
 #import <HueSDK_iOS/HueSDK.h>
 
 @interface ViewController () <LocationManagerDelegate>
@@ -21,6 +19,8 @@
   Direction _direction;
   UIButton *_buttonForLight;
   NSMutableDictionary *_lightStatus;
+  
+  UILabel *_lightNumber;
 }
 
 @end
@@ -34,16 +34,19 @@
 
 - (void)viewDidLoad {
   [super viewDidLoad];
-  // Do any additional setup after loading the view, typically from a nib.
-  self.view.backgroundColor = [UIColor yellowColor];
+
   _buttonForLight = [UIButton buttonWithType:UIButtonTypeCustom];
   [_buttonForLight addTarget:self action:@selector(buttonPressed) forControlEvents:UIControlEventTouchUpInside];
   [self.view addSubview:_buttonForLight];
   
-  _lightStatus = [@{@(NORTH) : @NO,
-                    @(EAST) : @NO,
-                    @(SOUTH) : @NO,
-                    @(WEST) : @NO} mutableCopy];
+  _lightNumber = [[UILabel alloc] initWithFrame:CGRectZero];
+  _lightNumber.font = [UIFont systemFontOfSize:36];
+  _lightNumber.textColor = [UIColor yellowColor];
+  [self.view addSubview:_lightNumber];
+  
+  _lightStatus = [@{@(ONE) : @NO,
+                    @(TWO) : @NO,
+                    @(THREE) : @NO} mutableCopy];
 
   _locationManager = [[LocationManager alloc] init];
   _locationManager.delegate = self;
@@ -68,31 +71,26 @@
   if (cache != nil && cache.bridgeConfiguration != nil && cache.bridgeConfiguration.ipaddress != nil){
     // Check if we are connected to the bridge right now
     if (UIAppDelegate.phHueSDK.localConnected) {
-      [_buttonForLight setEnabled:YES];
       PHBridgeResourcesCache *cache = [PHBridgeResourcesReader readBridgeResourcesCache];
       for (PHLight *light in cache.lights.allValues) {
         PHLightState *lightState = light.lightState;
         _lightStatus[@([self directionForLightID:light.identifier])] = lightState.on;
       }
-    } else {
-      [_buttonForLight setEnabled:NO];
+      if (_direction != NOTHING) {
+        [_buttonForLight setHighlighted:[_lightStatus[@(_direction)] boolValue]];
+      }
     }
   }
-
-  for (NSUInteger i = 0; i < 4; i++) {
-    Direction dir = (Direction)i;
-    // TODO load light status of light @(dir)
-    _lightStatus[@(dir)] = @NO;
-  }
+  NSLog(@"connected %@", _lightStatus);
 }
 
 - (void)noLocalConnection{
+  NSLog(@"connection lost");
   for (NSUInteger i = 0; i < 4; i++) {
     Direction dir = (Direction)i;
     _lightStatus[@(dir)] = @NO;
   }
   [_buttonForLight setHighlighted:NO];
-  [_buttonForLight setEnabled:NO];
 }
 
 
@@ -104,36 +102,16 @@
 -(void)viewDidLayoutSubviews
 {
   [super viewDidLayoutSubviews];
-  [_buttonForLight sizeToFit];
-  _buttonForLight.center = self.view.center;
+  _buttonForLight.frame = self.view.bounds;
+  [_lightNumber sizeToFit];
+  CGRect rect = _lightNumber.frame;
+  rect.origin = (CGPoint) {
+    .x = CGRectGetMaxX(self.view.bounds) - rect.size.width,
+    .y = CGRectGetMaxY(self.view.bounds) - rect.size.height
+  };
+  _lightNumber.frame = rect;
 }
 
-- (void)viewDidAppear:(BOOL)animated
-{
-  [super viewDidAppear:animated];
-  
-  
-  //----- SHOW LIVE CAMERA PREVIEW -----
-  AVCaptureSession *session = [[AVCaptureSession alloc] init];
-  session.sessionPreset = AVCaptureSessionPresetMedium;
-  
-  AVCaptureVideoPreviewLayer *captureVideoPreviewLayer = [[AVCaptureVideoPreviewLayer alloc] initWithSession:session];
-  
-  captureVideoPreviewLayer.frame = self.view.bounds;
-  [self.view.layer addSublayer:captureVideoPreviewLayer];
-  
-  AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-  
-  NSError *error = nil;
-  AVCaptureDeviceInput *input = [AVCaptureDeviceInput deviceInputWithDevice:device error:&error];
-  if (!input) {
-    // Handle the error appropriately.
-    NSLog(@"ERROR: trying to open camera: %@", error);
-  }
-  [session addInput:input];
-  
-  [session startRunning];
-}
 - (void)didReceiveMemoryWarning {
   [super didReceiveMemoryWarning];
   // Dispose of any resources that can be recreated.
@@ -141,35 +119,33 @@
 
 - (void)locationManager:(LocationManager *)manager directionDidChange:(Direction)direction
 {
+  NSLog(@"direction changed to :%@, light status: %@", @(direction), _lightStatus);
   _direction = direction;
-  NSString *imageName = nil;
   switch (direction) {
-    case NORTH:
-      imageName = @"NorthImage";
+    case ONE:
+    case TWO:
+    case THREE:
+      [_buttonForLight setImage:[UIImage imageNamed:@"bulb_off"] forState:UIControlStateNormal];
+      [_buttonForLight setImage:[UIImage imageNamed:@"bulb"] forState:UIControlStateHighlighted];
+      [_buttonForLight setHighlighted:[_lightStatus[@(direction)] boolValue]];
+      _lightNumber.text = [self lightIDForDirection:_direction];
+      [self.view setNeedsLayout];
       break;
-    case SOUTH:
-      imageName = @"SouthImage";
-      break;
-    case EAST:
-      imageName = @"EastImage";
-      break;
-    case WEST:
-      imageName = @"WestImage";
-      break;
-      
-    default:
+    case NOTHING:
+      [_buttonForLight setImage:[UIImage imageNamed:@"logo"] forState:UIControlStateNormal];
+      [_buttonForLight setImage:nil forState:UIControlStateHighlighted];
+      [_buttonForLight setHighlighted:NO];
       break;
   }
-  [_buttonForLight setImage:[UIImage imageNamed:imageName] forState:UIControlStateNormal];
-  [_buttonForLight setImage:[UIImage imageNamed:imageName] forState:UIControlStateHighlighted];
-  [_buttonForLight setEnabled:[_lightStatus[@(direction)] boolValue]];
   [self.view bringSubviewToFront:_buttonForLight];
 }
 
 - (void)buttonPressed
 {
+  if (_direction == NOTHING) {
+    return;
+  }
   BOOL newStatus = ![_lightStatus[@(_direction)] boolValue];
-  _lightStatus[@(_direction)] = @(newStatus);
   
   PHBridgeSendAPI *bridgeSendAPI = [[PHBridgeSendAPI alloc] init];
   PHLightState *lightState = [[PHLightState alloc] init];
@@ -177,47 +153,55 @@
   [lightState setHue:[NSNumber numberWithInt:arc4random() % 65535]];
   [lightState setBrightness:[NSNumber numberWithInt:254]];
   [lightState setSaturation:[NSNumber numberWithInt:254]];
+
+  
+  __weak __typeof(self) weakSelf = self;
+  Direction direction = _direction;
+  
   [bridgeSendAPI updateLightStateForId:[self lightIDForDirection:_direction] withLightState:lightState completionHandler:^(NSArray *errors) {
     if (errors != nil) {
       NSString *message = [NSString stringWithFormat:@"%@: %@", NSLocalizedString(@"Errors", @""), errors != nil ? errors : NSLocalizedString(@"none", @"")];
       
       NSLog(@"Response: %@",message);
+    } else {
+      dispatch_async(dispatch_get_main_queue(), ^{
+        [weakSelf handleLightChange:direction newStatus:newStatus];
+      });
     }
   }];
-  __weak __typeof(self) weakSelf = self;
-  dispatch_async(dispatch_get_main_queue(), ^{
-    __typeof(self) strongSelf = weakSelf;
-    [strongSelf->_buttonForLight setEnabled:newStatus];
-  });
+}
+
+- (void)handleLightChange:(Direction)direction newStatus:(BOOL)newStatus
+{
+  _lightStatus[@(direction)] = @(newStatus);
+  if (direction == _direction) {
+    [_buttonForLight setHighlighted:newStatus];
+  }
 }
 
 - (NSUInteger)directionForLightID:(NSString *)lightID
 {
-  if ([lightID isEqualToString:@"EAST"]) {
-    return EAST;
-  } else if ([lightID isEqualToString:@"WEST"]) {
-    return WEST;
-  } else if ([lightID isEqualToString:@"NORTH"]) {
-    return NORTH;
-  } else if ([lightID isEqualToString:@"SOUTH"]) {
-    return SOUTH;
+  if ([lightID isEqualToString:@"2"]) {
+    return TWO;
+  } else if ([lightID isEqualToString:@"1"]) {
+    return ONE;
+  } else if ([lightID isEqualToString:@"3"]) {
+    return THREE;
   }
-  return 100;
+  return NOTHING;
 }
 
 - (NSString *)lightIDForDirection:(Direction)dir
 {
   switch (dir) {
-    case NORTH:
-      return @"NORTH";
-    case SOUTH:
-      return @"SOUTH";
-    case EAST:
-      return @"EAST";
-    case WEST:
-      return @"WEST";
-    default:
-      break;
+    case ONE:
+      return @"1";
+    case TWO:
+      return @"2";
+    case THREE:
+      return @"3";
+    case NOTHING:
+      return @"NOTHING";
   }
 }
 

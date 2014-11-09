@@ -22,6 +22,7 @@
 @property (nonatomic, strong) PHBridgeSearching *bridgeSearch;
 @property (nonatomic, strong) PHBridgeSelectionViewController *bridgeSelectionViewController;
 
+@property (nonatomic, strong) PHBridgePushLinkViewController *pushLinkViewController;
 
 @end
 
@@ -262,6 +263,87 @@
     [self.loadingView.view removeFromSuperview];
     self.loadingView = nil;
   }
+}
+
+
+/**
+ Delegate method for PHbridgeSelectionViewController which is invoked when a bridge is selected
+ */
+- (void)bridgeSelectedWithIpAddress:(NSString *)ipAddress andMacAddress:(NSString *)macAddress {
+  /***************************************************
+   Removing the selection view controller takes us to
+   the 'normal' UI view
+   *****************************************************/
+  
+  // Remove the selection view controller
+  self.bridgeSelectionViewController = nil;
+  [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+  
+  // Show a connecting view while we try to connect to the bridge
+  [self showLoadingViewWithText:NSLocalizedString(@"Connecting...", @"Connecting text")];
+  
+  // Set SDK to use bridge and our default username (which should be the same across all apps, so pushlinking is only required once)
+  //NSString *username = [PHUtilities whitelistIdentifier];
+  
+  /***************************************************
+   Set the username, ipaddress and mac address,
+   as the bridge properties that the SDK framework will use
+   *****************************************************/
+  
+  [self.phHueSDK setBridgeToUseWithIpAddress:ipAddress macAddress:macAddress];
+  
+  /***************************************************
+   Setting the hearbeat running will cause the SDK
+   to regularly update the cache with the status of the
+   bridge resources
+   *****************************************************/
+  
+  // Start local heartbeat again
+  [self performSelector:@selector(enableLocalHeartbeat) withObject:nil afterDelay:1];
+}
+
+/**
+ Delegate method for PHBridgePushLinkViewController which is invoked if the pushlinking was successfull
+ */
+- (void)pushlinkSuccess {
+  /***************************************************
+   Push linking succeeded we are authenticated against
+   the chosen bridge.
+   *****************************************************/
+  
+  // Remove pushlink view controller
+  [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+  self.pushLinkViewController = nil;
+  
+  // Start local heartbeat
+  [self performSelector:@selector(enableLocalHeartbeat) withObject:nil afterDelay:1];
+}
+
+
+
+/**
+ Start the local authentication process
+ */
+- (void)doAuthentication {
+  // Disable heartbeats
+  [self disableLocalHeartbeat];
+  
+  /***************************************************
+   To be certain that we own this bridge we must manually
+   push link it. Here we display the view to do this.
+   *****************************************************/
+  
+  // Create an interface for the pushlinking
+  self.pushLinkViewController = [[PHBridgePushLinkViewController alloc] initWithNibName:@"PHBridgePushLinkViewController" bundle:[NSBundle mainBundle] hueSDK:UIAppDelegate.phHueSDK delegate:self];
+  
+  [self.navigationController presentViewController:self.pushLinkViewController animated:YES completion:^{
+    /***************************************************
+     Start the push linking process.
+     *****************************************************/
+    
+    // Start pushlinking when the interface is shown
+    [self.pushLinkViewController startPushLinking];
+  }];
 }
 
 @end

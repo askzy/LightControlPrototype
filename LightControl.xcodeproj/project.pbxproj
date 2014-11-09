@@ -23,7 +23,6 @@
 		67D891971A0EE0A5007303D1 /* LightControlTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 67D891961A0EE0A5007303D1 /* LightControlTests.m */; };
 		67D891A21A0EE21F007303D1 /* LocationManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 67D891A11A0EE21F007303D1 /* LocationManager.m */; };
 		67D891A41A0EE231007303D1 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67D891A31A0EE231007303D1 /* CoreLocation.framework */; };
-		67D891A71A0EE9BC007303D1 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67D891A61A0EE9BC007303D1 /* AVFoundation.framework */; };
 		67D891A91A0EED82007303D1 /* HueSDK_iOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67D891A81A0EED82007303D1 /* HueSDK_iOS.framework */; };
 		67D891BA1A0EEDE1007303D1 /* DDAbstractDatabaseLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 67D891AC1A0EEDE1007303D1 /* DDAbstractDatabaseLogger.m */; };
 		67D891BB1A0EEDE1007303D1 /* DDASLLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 67D891AE1A0EEDE1007303D1 /* DDASLLogger.m */; };
@@ -71,7 +70,6 @@
 		67D891A01A0EE21F007303D1 /* LocationManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LocationManager.h; sourceTree = "<group>"; };
 		67D891A11A0EE21F007303D1 /* LocationManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LocationManager.m; sourceTree = "<group>"; };
 		67D891A31A0EE231007303D1 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
-		67D891A61A0EE9BC007303D1 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		67D891A81A0EED82007303D1 /* HueSDK_iOS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HueSDK_iOS.framework; path = LightControl/HueSDK_iOS.framework; sourceTree = "<group>"; };
 		67D891AB1A0EEDE1007303D1 /* DDAbstractDatabaseLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDAbstractDatabaseLogger.h; sourceTree = "<group>"; };
 		67D891AC1A0EEDE1007303D1 /* DDAbstractDatabaseLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDAbstractDatabaseLogger.m; sourceTree = "<group>"; };
@@ -94,7 +92,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				67D891A71A0EE9BC007303D1 /* AVFoundation.framework in Frameworks */,
 				67D891A91A0EED82007303D1 /* HueSDK_iOS.framework in Frameworks */,
 				67D891A41A0EE231007303D1 /* CoreLocation.framework in Frameworks */,
 			);
@@ -211,7 +208,6 @@
 			isa = PBXGroup;
 			children = (
 				67D891A81A0EED82007303D1 /* HueSDK_iOS.framework */,
-				67D891A61A0EE9BC007303D1 /* AVFoundation.framework */,
 				67D891A31A0EE231007303D1 /* CoreLocation.framework */,
 			);
 			name = Frameworks;

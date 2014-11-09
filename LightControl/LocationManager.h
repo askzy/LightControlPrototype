@@ -10,10 +10,10 @@
 
 typedef NS_ENUM(NSUInteger, Direction)
 {
-  NORTH,
-  EAST,
-  SOUTH,
-  WEST
+  ONE,
+  TWO,
+  THREE,
+  NOTHING
 };
 
 @class LocationManager;

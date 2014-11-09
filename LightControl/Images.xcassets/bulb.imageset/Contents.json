@@ -6,12 +6,12 @@
     },
     {
       "idiom" : "universal",
-      "scale" : "2x",
-      "filename" : "Screen Shot 2014-11-08 at 4.14.19 PM.png"
+      "scale" : "2x"
     },
     {
       "idiom" : "universal",
-      "scale" : "3x"
+      "scale" : "3x",
+      "filename" : "bulb.png"
     }
   ],
   "info" : {
