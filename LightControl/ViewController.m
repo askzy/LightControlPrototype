@@ -163,6 +163,7 @@
   [_buttonForLight setImage:[UIImage imageNamed:imageName] forState:UIControlStateNormal];
   [_buttonForLight setImage:[UIImage imageNamed:imageName] forState:UIControlStateHighlighted];
   [_buttonForLight setEnabled:[_lightStatus[@(direction)] boolValue]];
+  [self.view bringSubviewToFront:_buttonForLight];
 }
 
 - (void)buttonPressed
